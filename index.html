@@ -1,0 +1,967 @@
+```html
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Arabic Word Puzzle</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #e8f5e9, #d0e8dc);
+    min-height: 100vh;
+    padding: 30px 15px;
+}
+
+.container {
+    max-width: 950px;
+    margin: auto;
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+h1 {
+    text-align: center;
+    color: #17613f;
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #777;
+    margin-bottom: 25px;
+}
+
+/* PETUNJUK */
+
+.instruction {
+    background: #eef8f2;
+    border-left: 5px solid #238457;
+    padding: 15px;
+    border-radius: 10px;
+    line-height: 1.6;
+    margin-bottom: 25px;
+}
+
+/* SOAL */
+
+.question {
+    text-align: center;
+    font-weight: bold;
+    color: #238457;
+    font-size: 20px;
+}
+
+/* POINTER */
+
+.pointer-box {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.pointer {
+    display: inline-block;
+    background: #17613f;
+    color: white;
+    padding: 10px 22px;
+    border-radius: 30px;
+    font-weight: bold;
+}
+
+/* AREA JAWABAN */
+
+.answer-area {
+    min-height: 100px;
+    border: 3px dashed #aaa;
+    border-radius: 15px;
+    padding: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    direction: rtl;
+    margin-bottom: 25px;
+}
+
+.placeholder {
+    color: #999;
+    direction: ltr;
+}
+
+/* KATA */
+
+.words {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    direction: rtl;
+}
+
+.word {
+    border: none;
+    background: #238457;
+    color: white;
+    border-radius: 12px;
+    padding: 15px 22px;
+    font-family: "Times New Roman", serif;
+    font-size: 27px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.12);
+}
+
+.word:hover {
+    transform: translateY(-4px);
+    background: #17613f;
+}
+
+.word:disabled {
+    background: #aaa;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* KATA YANG SUDAH DIPILIH */
+
+.selected-word {
+    background: #17613f;
+    color: white;
+    padding: 13px 20px;
+    border-radius: 10px;
+    font-family: "Times New Roman", serif;
+    font-size: 26px;
+    cursor: pointer;
+}
+
+/* TOMBOL */
+
+.buttons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 25px;
+}
+
+button.action {
+    border: none;
+    padding: 12px 22px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.check {
+    background: #238457;
+    color: white;
+}
+
+.reset {
+    background: #eeeeee;
+    color: #333;
+}
+
+.next {
+    background: #d79620;
+    color: white;
+    display: none;
+}
+
+/* FEEDBACK */
+
+.feedback {
+    text-align: center;
+    min-height: 35px;
+    margin-top: 20px;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.explanation {
+    display: none;
+    background: #fff8e5;
+    padding: 18px;
+    border-radius: 12px;
+    margin-top: 15px;
+    line-height: 1.8;
+}
+
+/* SKOR */
+
+.score {
+    text-align: center;
+    margin-top: 25px;
+    font-size: 18px;
+}
+
+/* RESPONSIVE */
+
+@media(max-width:600px) {
+
+    .container {
+        padding: 20px 15px;
+    }
+
+    .word,
+    .selected-word {
+        font-size: 21px;
+        padding: 11px 15px;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🧩 Arabic Word Puzzle</h1>
+
+    <div class="subtitle">
+        Susun kata menjadi kalimat bahasa Arab yang benar
+    </div>
+
+    <div class="instruction">
+
+        <strong>Petunjuk permainan:</strong>
+
+        <br>
+
+        Klik kata bahasa Arab sesuai dengan urutan yang benar.
+        Perhatikan angka <strong>pointer</strong> untuk menentukan
+        kata yang harus dipilih.
+
+        <br>
+
+        Jika salah memilih, kata yang sudah dimasukkan dapat
+        diklik kembali untuk membatalkannya.
+
+    </div>
+
+    <div class="question" id="questionNumber">
+        Soal 1
+    </div>
+
+    <div class="pointer-box">
+
+        <div class="pointer">
+            Pointer: <span id="pointer">1</span>
+        </div>
+
+    </div>
+
+    <!-- AREA JAWABAN -->
+
+    <div class="answer-area" id="answerArea">
+
+        <div class="placeholder">
+            Pilih kata sesuai urutan pointer...
+        </div>
+
+    </div>
+
+    <!-- KOTAK KATA -->
+
+    <div class="words" id="wordsArea"></div>
+
+    <!-- TOMBOL -->
+
+    <div class="buttons">
+
+        <button
+            class="action check"
+            onclick="checkAnswer()">
+            ✓ Periksa Jawaban
+        </button>
+
+        <button
+            class="action reset"
+            onclick="resetPuzzle()">
+            ↻ Ulangi
+        </button>
+
+        <button
+            class="action next"
+            id="nextButton"
+            onclick="nextQuestion()">
+            Soal Berikutnya →
+        </button>
+
+    </div>
+
+    <!-- FEEDBACK -->
+
+    <div
+        class="feedback"
+        id="feedback">
+    </div>
+
+    <div
+        class="explanation"
+        id="explanation">
+    </div>
+
+    <!-- SKOR -->
+
+    <div class="score">
+
+        Skor:
+        <strong>
+            <span id="score">0</span>
+        </strong>
+
+        /
+        <span id="total">10</span>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =====================================
+   DATA SOAL
+===================================== */
+
+const questions = [
+
+    {
+        words: [
+            "الْمَدْرَسَةِ",
+            "ذَهَبَ",
+            "الطَّالِبُ",
+            "إِلَى"
+        ],
+
+        answer: [
+            "ذَهَبَ",
+            "الطَّالِبُ",
+            "إِلَى",
+            "الْمَدْرَسَةِ"
+        ],
+
+        meaning:
+            "Siswa pergi ke sekolah."
+    },
+
+
+    {
+        words: [
+            "الْكِتَابَ",
+            "الطَّالِبُ",
+            "قَرَأَ"
+        ],
+
+        answer: [
+            "قَرَأَ",
+            "الطَّالِبُ",
+            "الْكِتَابَ"
+        ],
+
+        meaning:
+            "Siswa membaca buku."
+    },
+
+
+    {
+        words: [
+            "جَمِيلَةٌ",
+            "الْحَدِيقَةُ"
+        ],
+
+        answer: [
+            "الْحَدِيقَةُ",
+            "جَمِيلَةٌ"
+        ],
+
+        meaning:
+            "Taman itu indah."
+    },
+
+
+    {
+        words: [
+            "فِي",
+            "الْفَصْلِ",
+            "يَجْلِسُ",
+            "الطَّالِبُ"
+        ],
+
+        answer: [
+            "يَجْلِسُ",
+            "الطَّالِبُ",
+            "فِي",
+            "الْفَصْلِ"
+        ],
+
+        meaning:
+            "Siswa duduk di kelas."
+    },
+
+
+    {
+        words: [
+            "اللُّغَةَ",
+            "أَتَعَلَّمُ",
+            "الْعَرَبِيَّةَ"
+        ],
+
+        answer: [
+            "أَتَعَلَّمُ",
+            "اللُّغَةَ",
+            "الْعَرَبِيَّةَ"
+        ],
+
+        meaning:
+            "Saya mempelajari bahasa Arab."
+    },
+
+
+    {
+        words: [
+            "إِلَى",
+            "الطَّالِبَاتُ",
+            "الْجَامِعَةِ",
+            "يَذْهَبْنَ"
+        ],
+
+        answer: [
+            "تَذْهَبُ",
+            "الطَّالِبَاتُ",
+            "إِلَى",
+            "الْجَامِعَةِ"
+        ],
+
+        meaning:
+            "Para mahasiswi pergi ke universitas."
+    },
+
+
+    {
+        words: [
+            "الطَّعَامَ",
+            "الأُمُّ",
+            "تَطْبُخُ"
+        ],
+
+        answer: [
+            "تَطْبُخُ",
+            "الأُمُّ",
+            "الطَّعَامَ"
+        ],
+
+        meaning:
+            "Ibu memasak makanan."
+    },
+
+
+    {
+        words: [
+            "الْعَرَبِيَّةَ",
+            "أَحِبُّ",
+            "اللُّغَةَ"
+        ],
+
+        answer: [
+            "أَحِبُّ",
+            "اللُّغَةَ",
+            "الْعَرَبِيَّةَ"
+        ],
+
+        meaning:
+            "Saya menyukai bahasa Arab."
+    },
+
+
+    {
+        words: [
+            "جَدِيدٌ",
+            "هَذَا",
+            "كِتَابٌ"
+        ],
+
+        answer: [
+            "هَذَا",
+            "كِتَابٌ",
+            "جَدِيدٌ"
+        ],
+
+        meaning:
+            "Ini adalah buku baru."
+    },
+
+
+    {
+        words: [
+            "فِي",
+            "الطَّالِبَةُ",
+            "الْمَكْتَبَةِ",
+            "تَقْرَأُ"
+        ],
+
+        answer: [
+            "تَقْرَأُ",
+            "الطَّالِبَةُ",
+            "فِي",
+            "الْمَكْتَبَةِ"
+        ],
+
+        meaning:
+            "Siswi membaca di perpustakaan."
+    }
+
+];
+
+
+/* =====================================
+   VARIABEL
+===================================== */
+
+let currentQuestion = 0;
+
+let selectedWords = [];
+
+let score = 0;
+
+let answered = false;
+
+
+/* =====================================
+   LOAD SOAL
+===================================== */
+
+function loadQuestion() {
+
+    const question = questions[currentQuestion];
+
+    selectedWords = [];
+
+    answered = false;
+
+    document.getElementById("questionNumber")
+        .innerText =
+        "Soal " + (currentQuestion + 1);
+
+    document.getElementById("pointer")
+        .innerText = "1";
+
+    document.getElementById("feedback")
+        .innerHTML = "";
+
+    document.getElementById("explanation")
+        .style.display = "none";
+
+    document.getElementById("nextButton")
+        .style.display = "none";
+
+
+    const wordsArea =
+        document.getElementById("wordsArea");
+
+    wordsArea.innerHTML = "";
+
+
+    /* Mengacak kata */
+
+    const shuffled =
+        [...question.words]
+        .sort(() => Math.random() - 0.5);
+
+
+    shuffled.forEach(word => {
+
+        const button =
+            document.createElement("button");
+
+        button.className = "word";
+
+        button.innerText = word;
+
+        button.dataset.word = word;
+
+        button.onclick = function() {
+
+            selectWord(word, button);
+
+        };
+
+        wordsArea.appendChild(button);
+
+    });
+
+
+    renderAnswer();
+
+}
+
+
+/* =====================================
+   MEMILIH KATA
+===================================== */
+
+function selectWord(word, button) {
+
+    if (answered) return;
+
+    if (selectedWords.includes(word)) return;
+
+
+    selectedWords.push(word);
+
+    button.disabled = true;
+
+
+    document.getElementById("pointer")
+        .innerText =
+        selectedWords.length + 1;
+
+
+    renderAnswer();
+
+}
+
+
+/* =====================================
+   MENAMPILKAN JAWABAN
+===================================== */
+
+function renderAnswer() {
+
+    const answerArea =
+        document.getElementById("answerArea");
+
+    answerArea.innerHTML = "";
+
+
+    if (selectedWords.length === 0) {
+
+        const placeholder =
+            document.createElement("div");
+
+        placeholder.className = "placeholder";
+
+        placeholder.innerText =
+            "Pilih kata sesuai urutan pointer...";
+
+        answerArea.appendChild(placeholder);
+
+        return;
+    }
+
+
+    selectedWords.forEach((word, index) => {
+
+        const selected =
+            document.createElement("div");
+
+        selected.className =
+            "selected-word";
+
+        selected.innerText = word;
+
+        selected.title =
+            "Klik untuk membatalkan";
+
+
+        selected.onclick = function() {
+
+            if (answered) return;
+
+
+            selectedWords.splice(index, 1);
+
+            enableWord(word);
+
+            document.getElementById("pointer")
+                .innerText =
+                selectedWords.length + 1;
+
+            renderAnswer();
+
+        };
+
+
+        answerArea.appendChild(selected);
+
+    });
+
+}
+
+
+/* =====================================
+   MENGAKTIFKAN KEMBALI KATA
+===================================== */
+
+function enableWord(word) {
+
+    const buttons =
+        document.querySelectorAll(".word");
+
+
+    buttons.forEach(button => {
+
+        if (button.dataset.word === word) {
+
+            button.disabled = false;
+
+        }
+
+    });
+
+}
+
+
+/* =====================================
+   CEK JAWABAN
+===================================== */
+
+function checkAnswer() {
+
+    if (answered) return;
+
+
+    const question =
+        questions[currentQuestion];
+
+
+    if (
+        selectedWords.length !==
+        question.answer.length
+    ) {
+
+        document.getElementById("feedback")
+            .innerHTML =
+            "⚠️ Susun semua kata terlebih dahulu.";
+
+        return;
+    }
+
+
+    const correct =
+        JSON.stringify(selectedWords) ===
+        JSON.stringify(question.answer);
+
+
+    const feedback =
+        document.getElementById("feedback");
+
+
+    const explanation =
+        document.getElementById("explanation");
+
+
+    if (correct) {
+
+        score++;
+
+
+        document.getElementById("score")
+            .innerText = score;
+
+
+        feedback.innerHTML =
+            "🎉 BENAR! Susunan kalimat tepat.";
+
+
+        explanation.innerHTML =
+
+            "<strong>Kalimat:</strong><br>" +
+
+            question.answer.join(" ") +
+
+            "<br><br>" +
+
+            "<strong>Arti:</strong><br>" +
+
+            question.meaning;
+
+
+        explanation.style.display =
+            "block";
+
+
+        answered = true;
+
+
+        document.getElementById("nextButton")
+            .style.display =
+            "inline-block";
+
+    }
+
+    else {
+
+        feedback.innerHTML =
+            "❌ Jawaban belum tepat. Coba perhatikan kembali struktur kalimat.";
+
+    }
+
+}
+
+
+/* =====================================
+   RESET
+===================================== */
+
+function resetPuzzle() {
+
+    selectedWords = [];
+
+    answered = false;
+
+    document.getElementById("feedback")
+        .innerHTML = "";
+
+    document.getElementById("explanation")
+        .style.display = "none";
+
+    document.getElementById("nextButton")
+        .style.display = "none";
+
+    loadQuestion();
+
+}
+
+
+/* =====================================
+   SOAL BERIKUTNYA
+===================================== */
+
+function nextQuestion() {
+
+    currentQuestion++;
+
+
+    if (
+        currentQuestion <
+        questions.length
+    ) {
+
+        loadQuestion();
+
+    }
+
+    else {
+
+        showFinalResult();
+
+    }
+
+}
+
+
+/* =====================================
+   HASIL AKHIR
+===================================== */
+
+function showFinalResult() {
+
+    const container =
+        document.querySelector(".container");
+
+
+    let message;
+
+
+    if (score === questions.length) {
+
+        message =
+            "Luar biasa! Semua soal berhasil dijawab dengan benar. 🌟";
+
+    }
+
+    else if (score >= 7) {
+
+        message =
+            "Sangat baik! Kemampuan menyusun kalimat Arab sudah bagus.";
+
+    }
+
+    else if (score >= 5) {
+
+        message =
+            "Bagus! Tetap berlatih untuk meningkatkan kemampuan.";
+
+    }
+
+    else {
+
+        message =
+            "Tetap semangat! Mari berlatih kembali.";
+
+    }
+
+
+    container.innerHTML = `
+
+        <h1>🎉 Permainan Selesai!</h1>
+
+        <div style="text-align:center; padding:30px;">
+
+            <h2>Skor Akhir</h2>
+
+            <div style="
+                font-size:55px;
+                font-weight:bold;
+                color:#238457;
+                margin:20px;
+            ">
+                ${score} / ${questions.length}
+            </div>
+
+            <p style="font-size:18px;">
+                ${message}
+            </p>
+
+            <button
+                class="action check"
+                onclick="location.reload()"
+                style="
+                    border:none;
+                    padding:14px 25px;
+                    border-radius:10px;
+                    cursor:pointer;
+                    font-weight:bold;
+                    margin-top:15px;
+                "
+            >
+                🔄 Main Lagi
+            </button>
+
+        </div>
+
+    `;
+
+}
+
+
+/* =====================================
+   MULAI PERMAINAN
+===================================== */
+
+document.getElementById("total")
+    .innerText = questions.length;
+
+loadQuestion();
+
+</script>
+
+</body>
+</html>
+```
